@@ -27,7 +27,15 @@ def issue_opened_event(repo, payload):
     response = f"Thanks for opening this issue, @{author}! " \
                 f"The repository maintainers will look into it ASAP! :speech_balloon:"
     issue.create_comment(f"{response}")
-    issue.add_to_labels(number=payload['issue']['number'])
+    issue.add_to_labels('pending')
+
+def pull_request_event(repo, payload):
+
+    pull_request = repo.get_pull(number=payload['pull_request''number'])
+    if pull_request.is_merged():
+        pull_request.create_issue_comment(f"Thanks pull request successfully merged")
+
+
 
 @app.route("/", methods=['POST'])
 def bot():
@@ -49,6 +57,8 @@ def bot():
     # Check if the event is a GitHub issue creation event
     if all(k in payload.keys() for k in ['action', 'issue']) and payload['action'] == 'opened':
         issue_opened_event(repo, payload)
+    if all(k in payload.keys() for k in ['action', 'pull_request']) and payload['action'] == 'closed':
+        pull_request_event(repo, payload)
 
     return "", 204
 
